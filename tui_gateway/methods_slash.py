@@ -16,7 +16,8 @@ _registry = HandlerRegistry()
 # ── Live-session slash output ────────────────────────────────────────
 
 # Answered from the live session ONLY when the agent lives on a compute host.
-_ISOLATED_SESSION_READ_COMMANDS = frozenset({"context", "tools", "help"})
+# /context always needs the conversation's state, not the agent-less slash worker.
+_ISOLATED_SESSION_READ_COMMANDS = frozenset({"tools", "help"})
 
 _NO_AGENT_USAGE = "(._.) No active agent -- send a message first."
 _NO_AGENT = "No active agent -- send a message first."
