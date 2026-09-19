@@ -1716,13 +1716,23 @@ def _(rid, params: dict, session: dict) -> dict:
         key, agent, _status_row(session, params, key),
         model=mirror.get("model") or getattr(live_agent, "model", None),
         provider=mirror.get("provider") or getattr(live_agent, "provider", None),
-        tokens=_session_usage_snapshot(session).get("total"), agent_running=bool(session.get("running")),
+        tokens=(usage := _session_usage_snapshot(session)).get("total"), agent_running=bool(session.get("running")),
     )
     project = _project_info_for_cwd(_display_session_cwd(session))
     lines = [
         "Hermes TUI Status", "", *status_lines(fields, "session_id", "path"),
         *([f"Project: {project['name']}"] if project else []),
         *status_lines(fields, "title", "model", "created", "last_activity", "tokens", "agent_running")]
+    context_used = usage.get("context_used")
+    context_max = usage.get("context_max") or 0
+    mark = "~" if usage.get("context_estimated") else ""
+    if context_used is None:
+        lines.append("Context usage: unavailable")
+    elif context_max > 0:
+        lines.append(
+            f"Context usage: {mark}{context_used:,} / {context_max:,} tokens ({mark}{context_used / context_max * 100:.1f}%)")
+    else:
+        lines.append(f"Context usage: {mark}{context_used:,} tokens (limit unavailable)")
     return _ok(rid, {"output": "\n".join(lines)})
 
 
